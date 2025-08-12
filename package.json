@@ -1,0 +1,27 @@
+{
+  "name": "cli-ai-chatbot",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "Interactive CLI AI Chatbot powered by OpenRouter with markdown and typing animation",
+  "type": "module",
+  "bin": {
+    "cli-ai-chatbot": "src/index.js"
+  },
+  "dependencies": {
+    "chalk": "^5.5.0",
+    "commander": "^14.0.0",
+    "dotenv": "^17.2.1",
+    "marked": "^15.0.12",
+    "marked-terminal": "^7.3.0",
+    "openai": "^5.12.2",
+    "slice-ansi": "^7.1.0"
+  }
+}
