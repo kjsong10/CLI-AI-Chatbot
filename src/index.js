@@ -7,24 +7,27 @@ import TerminalRenderer from 'marked-terminal';
 import chalk from 'chalk';
 import { Command } from 'commander';
 
-// Configure marked to render for terminals
-marked.setOptions({
-  renderer: new TerminalRenderer({
-    emoji: true,
-    width: process.stdout.columns || 80,
-  }),
-});
-
 const program = new Command();
 program
   .name('cli-ai-chatbot')
   .description('Interactive CLI AI Chatbot powered by OpenRouter with markdown and typing animation')
-  .option('-m, --model <model>', 'OpenRouter model', 'openrouter/auto')
+  .option('-m, --model <model>', 'OpenRouter model', 'openai/gpt-oss-20b:free')
   .option('-s, --system <system>', 'System prompt', 'You are a helpful assistant.')
   .option('--no-render', 'Disable final pretty markdown render (keep only typing stream)')
+  .option('--no-typing', 'Disable typing animation')
+  .option('--no-emoji', 'Disable emoji in markdown rendering')
+  .option('--speed <ms>', 'Typing delay per character in ms (0 to disable)', (v) => parseInt(v, 10), 6)
   .parse(process.argv);
 
 const options = program.opts();
+
+// Configure marked after flags are parsed so we honor --no-emoji and width
+marked.setOptions({
+  renderer: new TerminalRenderer({
+    emoji: options.emoji !== false,
+    width: process.stdout.columns || 80,
+  }),
+});
 
 const apiKey = process.env.OPENROUTER_API_KEY;
 if (!apiKey) {
@@ -52,12 +55,18 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function typeOut(text, delayMs = 6) {
+const effectiveSpeed = (!process.stdout.isTTY || options.typing === false)
+  ? 0
+  : Number.isFinite(options.speed) ? Math.max(0, options.speed) : 6;
+
+async function typeOut(text, delayMs = effectiveSpeed) {
   if (!text) return;
+  if (delayMs <= 0) {
+    process.stdout.write(text);
+    return;
+  }
   for (const char of text) {
     process.stdout.write(char);
-    // Small delay to simulate typing without being too slow
-    // Tune delay if needed or make it configurable
     await sleep(delayMs);
   }
 }
@@ -128,6 +137,14 @@ async function main() {
   rl.on('close', () => {
     console.log(chalk.gray('\nGoodbye!'));
     process.exit(0);
+  });
+
+  // Cross-platform Ctrl+C/SIGTERM handling
+  process.on('SIGINT', () => {
+    rl.close();
+  });
+  process.on('SIGTERM', () => {
+    rl.close();
   });
 }
 

@@ -36,7 +36,7 @@ cli-ai-chatbot
   - `/clear`: reset conversation
   - `/exit`: quit
 
-Options:
+Options (default model: `openai/gpt-oss-20b:free`):
 
 ```
 cli-ai-chatbot --model openrouter/auto \
